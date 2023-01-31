@@ -1,3 +1,8 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 -- |
 -- Module:      Servant.OpenApi
 -- License:     BSD3
@@ -40,11 +45,20 @@ module Servant.OpenApi (
   -- * Testing
   validateEveryToJSON,
   validateEveryToJSONWithPatternChecker,
+  main,
 ) where
 
 import           Servant.OpenApi.Internal
 import           Servant.OpenApi.Test
 import           Servant.OpenApi.Internal.Orphans ()
+import Servant.API
+import Data.Proxy
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.IO as T
+import Data.Text.Encoding
+import GHC.Generics (Generic)
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.OpenApi (ToParamSchema, ToSchema)
 
 -- $setup
 -- >>> import Control.Applicative
@@ -529,3 +543,16 @@ import           Servant.OpenApi.Internal.Orphans ()
 -- If you're implementing a server for an API, you might also want to serve its @'OpenApi'@ specification.
 --
 -- See <example/src/Todo.hs Todo.hs> for an example of a server.
+
+
+
+main :: IO ()
+main = do
+    T.writeFile "/Users/gthomas/Desktop/param.json" $
+        decodeUtf8 . BL.toStrict . encodePretty . toOpenApi $
+            Proxy @(QueryParam "query" Level :> GetNoContent)
+    T.writeFile "/Users/gthomas/Desktop/body.json" $
+        decodeUtf8 . BL.toStrict . encodePretty . toOpenApi $
+            Proxy @(ReqBody '[JSON] Level :> GetNoContent)
+
+data Level = Beginner | Intermediate | Expert deriving (Generic, ToParamSchema, ToSchema)
