@@ -339,7 +339,9 @@ instance (KnownSymbol sym, ToParamSchema a, HasOpenApi sub, SBoolI (FoldRequired
         & description .~ transDesc (reflectDescription (Proxy :: Proxy mods))
         & required ?~ reflectBool (Proxy :: Proxy (FoldRequired mods))
         & in_ .~ ParamQuery
-        & schema ?~ Inline sch
+        & schema ?~ Ref (Reference "Level")
+      -- (defs, ref) = runDeclare (declareSchemaRef (Proxy :: Proxy a)) mempty
+        -- & description .~ transDesc (reflectDescription (Proxy :: Proxy mods))
       sch = toParamSchema (Proxy :: Proxy a)
 
 instance (KnownSymbol sym, ToParamSchema a, HasOpenApi sub) => HasOpenApi (QueryParams sym a :> sub) where
@@ -393,6 +395,7 @@ instance (ToSchema a, AllAccept cs, HasOpenApi sub, KnownSymbol (FoldDescription
       tname = "body"
       transDesc ""   = Nothing
       transDesc desc = Just (Text.pack desc)
+      --
       (defs, ref) = runDeclare (declareSchemaRef (Proxy :: Proxy a)) mempty
       reqBody = (mempty :: RequestBody)
         & description .~ transDesc (reflectDescription (Proxy :: Proxy mods))
